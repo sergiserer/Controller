@@ -18,7 +18,7 @@ Una página web servida por el propio PC.
 
 ## Funciones
 
-- **Apagar** y **reiniciar** con 30 s de margen y cuenta atrás en pantalla.
+- **Apagar** y **reiniciar** con 7 s de margen y cuenta atrás en pantalla.
 - **Cancelar** un apagado o reinicio pendiente.
 - **Volumen**: subir, bajar (mantener pulsado repite) y silenciar.
 - **Brillo del monitor** por DDC/CI, con barra deslizante que se abre en el valor real.
