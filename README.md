@@ -4,7 +4,9 @@ A remote control for a Windows 11 PC from your iPhone (or any phone), over your 
 It's a small web page served by the PC itself: **power off, restart, a shutdown timer, volume and
 monitor brightness** — no app to install on the phone.
 
+
 ## Demo
+The following screenshots show the web application in Spanish, but the latest release is in English.
 <div align="center">
   <img src="capturas/total.jpeg" width="30%" alt="Full view">
   &nbsp;&nbsp;
@@ -23,11 +25,15 @@ Double‑click it. A small window opens with the address and a **QR code**: scan
 camera, open the link, and add it to your home screen. Keep the window open while you use the remote;
 close it to stop.
 
+- Only run the executable once. After that, use the shortcut **Remote - Start** 
 - The first time, Windows may show a blue **"Windows protected your PC"** notice (the file isn't
   code‑signed). Click **"More info" → "Run anyway"**.
 - Windows will ask about the **firewall**: choose **private networks** and allow it.
-- Tick **"Start with Windows"** in the window so it's always ready.
+- Tick **"Start with Windows"** in the window so it's always ready (optional).
 - The app creates two desktop shortcuts the first time: **Remote - Start** and **Remote - Stop**.
+- Whenever you want to use it, you need to click on **Remote - Start** 
+
+  
 
 ## Features
 
