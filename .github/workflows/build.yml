@@ -1,0 +1,44 @@
+name: Construir Mando.exe
+
+# Se ejecuta al publicar una etiqueta de versión (v1, v1.1...) o a mano desde la pestaña Actions.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # necesario para crear la Release con el .exe
+
+jobs:
+  construir:
+    runs-on: windows-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar herramientas
+        run: python -m pip install --upgrade pyinstaller qrcode
+
+      - name: Compilar Mando.exe
+        run: >
+          python -m PyInstaller --onefile --noconsole --name Mando
+          --collect-submodules qrcode --icon mando.ico mando_app.py
+
+      - name: Guardar el .exe como artefacto de la ejecución
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mando
+          path: dist/Mando.exe
+
+      # Al publicar una etiqueta (v1, v1.1...), además crea la Release con el .exe adjunto
+      - name: Publicar en Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Mando.exe
