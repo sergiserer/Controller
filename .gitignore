@@ -1,0 +1,11 @@
+# Clave de acceso: nunca al repositorio
+token.txt
+
+# Python
+__pycache__/
+*.pyc
+
+# PyInstaller
+build/
+dist/
+*.spec
