@@ -245,17 +245,17 @@ def ip_local() -> str:
 
 
 PAGINA = """<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Mi PC">
+<meta name="apple-mobile-web-app-title" content="Remote">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1c1f24">
 <link rel="apple-touch-icon" href="/icono.png?v=__VERSION_ICONO__">
 <link rel="icon" type="image/png" href="/icono.png?v=__VERSION_ICONO__">
-<title>Mi PC</title>
+<title>Remote</title>
 <style>
   :root {
     --fondo:  #1c1f24;
@@ -467,11 +467,33 @@ PAGINA = """<!doctype html>
     margin-top: 8px; min-height: 16px; text-align: center;
     font-size: 12px; color: var(--tenue); opacity: .8;
   }
+
+  /* Cartel cuando el servidor está apagado */
+  .offline {
+    position: fixed; inset: 0; z-index: 20;
+    background: var(--fondo);
+    display: flex; align-items: center; justify-content: center; padding: 34px;
+    opacity: 0; pointer-events: none; transition: opacity .3s ease;
+  }
+  .offline.visible { opacity: 1; pointer-events: auto; }
+  .offline-card { text-align: center; max-width: 300px; }
+  .offline-card svg { width: 54px; height: 54px; stroke: var(--tenue); fill: none;
+    stroke-width: 1.5; stroke-linecap: round; margin-bottom: 24px; }
+  .offline-title { font-size: 20px; font-weight: 300; letter-spacing: .04em;
+    color: var(--texto); margin-bottom: 12px; }
+  .offline-text { font-size: 13px; line-height: 1.6; color: var(--tenue); }
 </style>
 </head>
 <body>
+  <div id="offline" class="offline">
+    <div class="offline-card">
+      <svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 6.6a8 8 0 1 0 11.4 0"/></svg>
+      <div class="offline-title">Remote is off</div>
+      <div class="offline-text">Open Remote on your PC. This screen will connect by itself.</div>
+    </div>
+  </div>
   <!-- Reloj (temporizador), arriba a la izquierda -->
-  <button id="reloj" class="redondo pequeno esquina izq" aria-label="Temporizador">
+  <button id="reloj" class="redondo pequeno esquina izq" aria-label="Timer">
     <svg viewBox="0 0 24 24">
       <circle cx="12" cy="13" r="8"/>
       <path d="M12 9v4l2.5 2"/>
@@ -480,7 +502,7 @@ PAGINA = """<!doctype html>
   </button>
 
   <!-- Sol (brillo), arriba a la derecha -->
-  <button id="sol" class="redondo pequeno esquina der" aria-label="Brillo">
+  <button id="sol" class="redondo pequeno esquina der" aria-label="Brightness">
     <svg viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="4"/>
       <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>
@@ -493,14 +515,14 @@ PAGINA = """<!doctype html>
     <div class="selector">
       <label class="caja">
         <span id="vh" class="num">0</span>
-        <span class="unidad">Horas</span>
-        <select id="selH" aria-label="Horas"></select>
+        <span class="unidad">Hours</span>
+        <select id="selH" aria-label="Hours"></select>
       </label>
       <span class="dos-puntos">:</span>
       <label class="caja">
         <span id="vm" class="num">30</span>
-        <span class="unidad">Minutos</span>
-        <select id="selM" aria-label="Minutos"></select>
+        <span class="unidad">Minutes</span>
+        <select id="selM" aria-label="Minutes"></select>
       </label>
     </div>
     <div class="atajos">
@@ -509,24 +531,24 @@ PAGINA = """<!doctype html>
       <button class="chip" data-min="60">1 h</button>
       <button class="chip" data-min="120">2 h</button>
     </div>
-    <button id="programar" class="programar">Programar apagado</button>
+    <button id="programar" class="programar">Schedule shutdown</button>
     <div id="avisoReloj" class="aviso"></div>
   </div>
 
   <div id="panelBrillo" class="panel der">
     <div class="fila">
-      <input id="brillo" type="range" min="0" max="100" step="1" value="50" aria-label="Brillo">
+      <input id="brillo" type="range" min="0" max="100" step="1" value="50" aria-label="Brightness">
       <span id="pct" class="pct">50</span>
     </div>
     <div id="avisoBrillo" class="aviso"></div>
   </div>
 
   <header>
-    <div class="etiqueta"><span class="punto"></span>Red local</div>
-    <h1>MANDO</h1>
+    <div class="etiqueta"><span class="punto"></span>Local network</div>
+    <h1>REMOTE</h1>
   </header>
 
-  <button id="apagar" class="encendido" onclick="accion('apagar')" aria-label="Apagar">
+  <button id="apagar" class="encendido" onclick="accion('apagar')" aria-label="Power">
     <span class="anillo">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round">
         <path d="M12 3v8"/>
@@ -537,24 +559,24 @@ PAGINA = """<!doctype html>
 
   <section class="volumen">
     <div class="mando">
-      <button class="redondo" data-vol="bajar" aria-label="Bajar volumen">
+      <button class="redondo" data-vol="bajar" aria-label="Volume down">
         <svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg>
       </button>
-      <button class="redondo pequeno" data-vol="silencio" aria-label="Silenciar">
+      <button class="redondo pequeno" data-vol="silencio" aria-label="Mute">
         <svg viewBox="0 0 24 24">
           <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/>
           <path d="M16 9.5l5 5M21 9.5l-5 5"/>
         </svg>
       </button>
-      <button class="redondo" data-vol="subir" aria-label="Subir volumen">
+      <button class="redondo" data-vol="subir" aria-label="Volume up">
         <svg viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></svg>
       </button>
     </div>
   </section>
 
   <div class="acciones">
-    <button class="btn" onclick="accion('reiniciar')">Reiniciar</button>
-    <button class="btn" onclick="accion('cancelar')">Cancelar</button>
+    <button class="btn" onclick="accion('reiniciar')">Restart</button>
+    <button class="btn" onclick="accion('cancelar')">Cancel</button>
   </div>
 
   <div id="estado" class="estado"></div>
@@ -567,6 +589,13 @@ PAGINA = """<!doctype html>
   const $ = id => document.getElementById(id);
   const token = new URLSearchParams(location.search).get('t') || '';
   const estado = $('estado'), nota = $('nota');
+  const offline = $('offline');
+  let reintentoOffline = null;
+  function mostrarOffline(si) {
+    offline.classList.toggle('visible', si);
+    if (si && !reintentoOffline) reintentoOffline = setInterval(sincronizar, 3000);
+    if (!si && reintentoOffline) { clearInterval(reintentoOffline); reintentoOffline = null; }
+  }
   const botonApagar = $('apagar'), botonReloj = $('reloj');
 
   function enviar(nombre, extra = {}) {
@@ -586,7 +615,7 @@ PAGINA = """<!doctype html>
   }
 
   // ---------- Cuenta atrás (apagar, reiniciar o temporizador)
-  const TEXTOS = {apagar: 'Apagando en', reiniciar: 'Reiniciando en', temporizador: 'Se apagará en'};
+  const TEXTOS = {apagar: 'Shutting down in', reiniciar: 'Restarting in', temporizador: 'Shutting down in'};
   let tic = null, fin = 0, pendiente = null;
 
   function formato(s) {
@@ -611,7 +640,7 @@ PAGINA = """<!doctype html>
     (tipo === 'temporizador' ? botonReloj : botonApagar).classList.add('activo');
     const pintar = () => {
       const s = Math.max(0, Math.round((fin - Date.now()) / 1000));
-      if (s <= 0) { parar(); estado.textContent = 'Hasta luego'; return; }
+      if (s <= 0) { parar(); estado.textContent = 'Good night'; return; }
       estado.innerHTML = TEXTOS[tipo] + ' <b>' + formato(s) + '</b>';
     };
     pintar();
@@ -626,7 +655,8 @@ PAGINA = """<!doctype html>
       if (nombre === 'cancelar') { parar(); avisar(d.mensaje); return; }
       cuentaAtras(nombre, d.restante);
     } catch (e) {
-      avisar('Sin conexión con el PC');
+      avisar('No connection to the PC');
+      mostrarOffline(true);   // si no responde, el servidor está apagado
     }
   }
 
@@ -635,13 +665,16 @@ PAGINA = """<!doctype html>
     try {
       const r = await enviar('estado');
       const d = await r.json();
+      mostrarOffline(false);
       if (d.restante > 0) {
         const desfase = Math.abs((fin - Date.now()) / 1000 - d.restante);
         if (pendiente !== d.tipo || desfase > 2) cuentaAtras(d.tipo, d.restante);
       } else if (pendiente) {
         parar();
       }
-    } catch (e) { /* sin conexión: se reintenta al volver a la página */ }
+    } catch (e) {
+      mostrarOffline(true);   // el servidor está apagado: aparece el cartel
+    }
   }
   sincronizar();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizar(); });
@@ -684,7 +717,7 @@ PAGINA = """<!doctype html>
   const selH = $('selH'), selM = $('selM'), vh = $('vh'), vm = $('vm');
   const avisoReloj = $('avisoReloj'), programar = $('programar');
 
-  for (let h = 0; h <= 23; h++) selH.add(new Option(h + (h === 1 ? ' hora' : ' horas'), h));
+  for (let h = 0; h <= 23; h++) selH.add(new Option(h + (h === 1 ? ' hour' : ' hours'), h));
   for (let m = 0; m <= 59; m++) selM.add(new Option(m + ' min', m));
 
   function pintarTiempo() {
@@ -710,7 +743,7 @@ PAGINA = """<!doctype html>
   function abrirReloj() {
     if (pendiente) {
       programar.disabled = true;
-      avisoReloj.textContent = 'Ya hay un apagado en marcha. Pulsa Cancelar si quieres cambiarlo.';
+      avisoReloj.textContent = 'A shutdown is already running. Press Cancel to change it.';
     } else {
       programar.disabled = false;
       avisoReloj.textContent = '';
@@ -719,7 +752,7 @@ PAGINA = """<!doctype html>
 
   programar.addEventListener('click', async () => {
     const minutos = parseInt(selH.value, 10) * 60 + parseInt(selM.value, 10);
-    if (minutos < 1) { avisoReloj.textContent = 'Elige al menos 1 minuto'; return; }
+    if (minutos < 1) { avisoReloj.textContent = 'Pick at least 1 minute'; return; }
     programar.disabled = true;
     try {
       const r = await enviar('temporizador', {segundos: minutos * 60});
@@ -729,14 +762,14 @@ PAGINA = """<!doctype html>
       cerrarPanel();
       cuentaAtras('temporizador', d.restante);
     } catch (e) {
-      avisoReloj.textContent = 'Sin conexión con el PC';
+      avisoReloj.textContent = 'No connection to the PC';
       programar.disabled = false;
     }
   });
 
   // ---------- Volumen: un toque = un paso; mantener pulsado = repetición continua
   function volumen(nombre) {
-    enviar(nombre).catch(() => avisar('Sin conexión con el PC'));
+    enviar(nombre).catch(() => avisar('No connection to the PC'));
   }
 
   document.querySelectorAll('[data-vol]').forEach(b => {
@@ -770,13 +803,13 @@ PAGINA = """<!doctype html>
       const d = await r.json();
       if (d.brillo === null || d.brillo === undefined) {
         barra.disabled = true;
-        avisoBrillo.textContent = 'El monitor no responde por DDC/CI';
+        avisoBrillo.textContent = 'The monitor does not respond over DDC/CI';
       } else {
         barra.disabled = false;
         pintarBrillo(d.brillo);
       }
     } catch (e) {
-      avisoBrillo.textContent = 'Sin conexión con el PC';
+      avisoBrillo.textContent = 'No connection to the PC';
     }
   }
 
@@ -784,7 +817,7 @@ PAGINA = """<!doctype html>
   let ultimoEnvio = 0, diferido = null;
   function mandarBrillo(v) {
     ultimoEnvio = Date.now();
-    enviar('brillo', {valor: v}).catch(() => { avisoBrillo.textContent = 'Sin conexión con el PC'; });
+    enviar('brillo', {valor: v}).catch(() => { avisoBrillo.textContent = 'No connection to the PC'; });
   }
   barra.addEventListener('input', () => {
     const v = parseInt(barra.value, 10);
@@ -823,23 +856,23 @@ class Manejador(BaseHTTPRequestHandler):
             self.wfile.write(ICONO_PNG)
             return
         if url.path != "/":
-            return self._responder(404, "No encontrado", "text/plain")
+            return self._responder(404, "Not found", "text/plain")
         token = parse_qs(url.query).get("t", [""])[0]
         if not hmac.compare_digest(token, TOKEN):
-            return self._responder(403, "Acceso denegado", "text/plain")
+            return self._responder(403, "Access denied", "text/plain")
         self._responder(200, PAGINA.replace("__VERSION_ICONO__", VERSION_ICONO), "text/html")
 
     def do_POST(self):
         if self.path != "/accion":
-            return self._json(404, "Ruta desconocida")
+            return self._json(404, "Unknown route")
         try:
             longitud = min(int(self.headers.get("Content-Length", 0)), 1024)
             datos = json.loads(self.rfile.read(longitud) or b"{}")
         except (ValueError, json.JSONDecodeError):
-            return self._json(400, "Petición mal formada")
+            return self._json(400, "Malformed request")
 
         if not hmac.compare_digest(str(datos.get("token", "")), TOKEN):
-            return self._json(403, "Token incorrecto")
+            return self._json(403, "Wrong token")
 
         nombre = datos.get("accion")
 
@@ -854,9 +887,9 @@ class Manejador(BaseHTTPRequestHandler):
             try:
                 valor = max(0, min(100, int(datos.get("valor"))))
             except (TypeError, ValueError):
-                return self._json(400, "Valor de brillo no válido")
+                return self._json(400, "Invalid brightness value")
             ok = fijar_brillo(valor)
-            return self._json(200 if ok else 500, "" if ok else "El monitor no responde por DDC/CI")
+            return self._json(200 if ok else 500, "" if ok else "The monitor does not respond over DDC/CI")
 
         if nombre == "estado":
             actual = consultar_programado()
@@ -868,24 +901,24 @@ class Manejador(BaseHTTPRequestHandler):
             habia = desprogramar()
             # Por si hubiera un apagado programado desde fuera con "shutdown /t"
             externo = ejecutar(["shutdown", "/a"])
-            return self._json(200, "" if (habia or externo) else "No había nada pendiente")
+            return self._json(200, "" if (habia or externo) else "Nothing was pending")
 
         if nombre in ("apagar", "reiniciar", "temporizador"):
             if nombre == "temporizador":
                 try:
                     segundos = int(datos.get("segundos"))
                 except (TypeError, ValueError):
-                    return self._json(400, "Tiempo no válido")
+                    return self._json(400, "Invalid time")
                 if not TEMPORIZADOR_MIN <= segundos <= TEMPORIZADOR_MAX:
-                    return self._json(400, "Elige entre 1 minuto y 23 h 59 min")
+                    return self._json(400, "Pick between 1 minute and 23 h 59 min")
             else:
                 segundos = SEGUNDOS_AVISO
 
             if not programar(nombre, segundos):
-                return self._json(409, "Ya hay un apagado en marcha. Pulsa Cancelar primero")
+                return self._json(409, "A shutdown is already running. Press Cancel first")
             return self._json(200, "", tipo=nombre, restante=segundos)
 
-        return self._json(400, "Acción no válida")
+        return self._json(400, "Invalid action")
 
     def log_message(self, formato, *args):
         pass  # silencio: con pythonw no hay consola

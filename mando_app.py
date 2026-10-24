@@ -27,8 +27,9 @@ TEXTO = "#c9ced6"
 TENUE = "#6b7380"
 AZUL = "#4a78c2"
 CAJA = "#14171c"
+ACENTO = "#294a74"   # azul del botón principal, como el de la web
 
-NOMBRE_INICIO = "Mando.lnk"   # acceso directo en la carpeta de Inicio de Windows
+NOMBRE_INICIO = "Remote.lnk"   # acceso directo en la carpeta de Inicio de Windows
 
 # Icono del acceso "Detener" (mando con X roja), incrustado para no depender de archivos sueltos.
 ICONO_DETENER_ICO = base64.b64decode(
@@ -261,14 +262,14 @@ def _crear_lnk(ruta, destino, argumentos, descripcion, icono):
 def crear_accesos_escritorio():
     """La primera vez, crea en el escritorio 'Mando - Iniciar' y 'Mando - Detener'."""
     escritorio = _escritorio()
-    iniciar = os.path.join(escritorio, "Mando - Iniciar.lnk")
-    detener = os.path.join(escritorio, "Mando - Detener.lnk")
+    iniciar = os.path.join(escritorio, "Remote - Start.lnk")
+    detener = os.path.join(escritorio, "Remote - Stop.lnk")
     if os.path.exists(iniciar):
         return   # ya se crearon antes
 
     exe = sys.executable
     # Iniciar: abre esta misma app. Usa el icono del propio .exe.
-    _crear_lnk(iniciar, exe, "", "Abrir MANDO", exe + ",0")
+    _crear_lnk(iniciar, exe, "", "Open Remote", exe + ",0")
 
     # Detener: cierra el proceso Mando. Escribe su icono (mando con X) junto al .exe.
     ico = os.path.join(apagar_pc.CARPETA_BASE, "mando_detener.ico")
@@ -281,7 +282,7 @@ def crear_accesos_escritorio():
     cmd = "Stop-Process -Name '%s' -Force -ErrorAction SilentlyContinue" % nombre_proc
     _crear_lnk(detener, "powershell.exe",
                "-NoProfile -WindowStyle Hidden -Command \"" + cmd + "\"",
-               "Detener MANDO", ico)
+               "Stop Remote", ico)
 
 
 # ---------------------------------------------------------------- Código QR (opcional)
@@ -312,10 +313,10 @@ def dibujar_qr(canvas, texto, lado_px):
 def main():
     if not puerto_libre():
         root = tk.Tk(); root.withdraw()
-        messagebox.showinfo("MANDO",
-                            "MANDO ya está en marcha.\n\n"
-                            "Si no lo ves, búscalo en la barra de tareas, o cierra la otra "
-                            "ventana de Mando antes de abrir esta.")
+        messagebox.showinfo("Remote",
+                            "Remote is already running.\n\n"
+                            "If you don't see it, check the taskbar, or close the "
+                            "other Remote window before opening this one.")
         return
 
     arrancar_servidor()
@@ -326,11 +327,12 @@ def main():
     url = url_mando()
 
     root = tk.Tk()
-    root.title("MANDO")
+    root.title("Remote")
     root.configure(bg=FONDO)
     root.resizable(False, False)
 
     # Icono de la ventana (el mando en pixel art, ya incrustado en apagar_pc)
+    icono = None
     try:
         icono = tk.PhotoImage(data=base64.b64encode(apagar_pc.ICONO_PNG).decode())
         root.iconphoto(True, icono)
@@ -339,37 +341,47 @@ def main():
         pass
 
     marco = tk.Frame(root, bg=FONDO)
-    marco.pack(padx=26, pady=22)
+    marco.pack(padx=34, pady=28)
 
-    tk.Label(marco, text="MANDO", bg=FONDO, fg=TEXTO,
-             font=("Segoe UI Light", 22)).pack()
-    tk.Label(marco, text="COPIA ESTO EN EL NAVEGADOR DE TU MÓVIL",
-             bg=FONDO, fg=TENUE, font=("Segoe UI", 8)).pack(pady=(10, 8))
+    # El mando en pixel art, arriba del todo
+    if icono is not None:
+        try:
+            mini = icono.subsample(3)
+            lbl_icono = tk.Label(marco, image=mini, bg=FONDO)
+            lbl_icono.image = mini
+            lbl_icono.pack(pady=(0, 8))
+        except Exception:
+            pass
+
+    tk.Label(marco, text="REMOTE", bg=FONDO, fg=TEXTO,
+             font=("Segoe UI Light", 24)).pack()
+    tk.Label(marco, text="OPEN THIS IN YOUR PHONE'S BROWSER",
+             bg=FONDO, fg=TENUE, font=("Segoe UI", 8)).pack(pady=(12, 10))
 
     # La dirección, seleccionable
     caja = tk.Entry(marco, justify="center", bd=0, relief="flat",
                     bg=CAJA, fg=AZUL, font=("Consolas", 11), readonlybackground=CAJA)
     caja.insert(0, url)
     caja.config(state="readonly")
-    caja.pack(fill="x", ipady=8)
+    caja.pack(fill="x", ipady=9)
 
     def copiar():
         root.clipboard_clear()
         root.clipboard_append(url)
-        boton_copiar.config(text="COPIADO")
-        root.after(1500, lambda: boton_copiar.config(text="COPIAR DIRECCIÓN"))
+        boton_copiar.config(text="COPIED")
+        root.after(1500, lambda: boton_copiar.config(text="COPY ADDRESS"))
 
-    boton_copiar = tk.Button(marco, text="COPIAR DIRECCIÓN", command=copiar,
-                             bg="#262b32", fg=TEXTO, activebackground=AZUL,
+    boton_copiar = tk.Button(marco, text="COPY ADDRESS", command=copiar,
+                             bg=ACENTO, fg="#eef3fb", activebackground=AZUL,
                              activeforeground="#ffffff", bd=0, relief="flat",
                              font=("Segoe UI", 9, "bold"), cursor="hand2")
-    boton_copiar.pack(fill="x", pady=(8, 0), ipady=7)
+    boton_copiar.pack(fill="x", pady=(10, 0), ipady=9)
 
     # Código QR (si la librería qrcode está disponible)
     qr_canvas = tk.Canvas(marco, bg=FONDO, highlightthickness=0, bd=0)
     if dibujar_qr(qr_canvas, url, 190):
-        tk.Label(marco, text="O ESCANEA CON LA CÁMARA DEL MÓVIL",
-                 bg=FONDO, fg=TENUE, font=("Segoe UI", 8)).pack(pady=(16, 8))
+        tk.Label(marco, text="OR SCAN WITH YOUR PHONE CAMERA",
+                 bg=FONDO, fg=TENUE, font=("Segoe UI", 8)).pack(pady=(18, 10))
         qr_canvas.pack()
 
     # Arrancar con Windows
@@ -378,13 +390,13 @@ def main():
     def alternar_inicio():
         fijar_arranque(var_inicio.get())
 
-    tk.Checkbutton(marco, text="Arrancar con Windows", variable=var_inicio,
+    tk.Checkbutton(marco, text="Start with Windows", variable=var_inicio,
                    command=alternar_inicio, bg=FONDO, fg=TENUE,
                    selectcolor=CAJA, activebackground=FONDO, activeforeground=TEXTO,
-                   bd=0, highlightthickness=0, font=("Segoe UI", 9)).pack(pady=(16, 2))
+                   bd=0, highlightthickness=0, font=("Segoe UI", 9)).pack(pady=(18, 2))
 
-    tk.Label(marco, text="Deja esta ventana abierta mientras uses el mando.\n"
-                         "Para apagarlo, cierra la ventana.",
+    tk.Label(marco, text="Keep this window open while you use the remote.\n"
+                         "To stop it, close the window.",
              bg=FONDO, fg=TENUE, font=("Segoe UI", 8), justify="center").pack(pady=(10, 0))
 
     root.update_idletasks()

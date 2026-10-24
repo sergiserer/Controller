@@ -1,183 +1,183 @@
-# MANDO
+# Remote
 
-Mando a distancia para un PC con Windows 11 desde el iPhone (o cualquier móvil), a través de la wifi de casa.
-Una página web servida por el propio PC.
+A remote control for a Windows 11 PC from your iPhone (or any phone), over your home Wi‑Fi.
+It's a small web page served by the PC itself: **power off, restart, a shutdown timer, volume and
+monitor brightness** — no app to install on the phone.
 
-
-## DEMO
+## Demo
 <div align="center">
-  <img src="capturas/total.jpeg" width="30%" alt="Proyección total">
+  <img src="capturas/total.jpeg" width="30%" alt="Full view">
   &nbsp;&nbsp;
-  <img src="capturas/temp.jpeg" width="30%" alt="Temperatura">
+  <img src="capturas/temp.jpeg" width="30%" alt="Timer">
   &nbsp;&nbsp;
-  <img src="capturas/brilli.jpeg" width="30%" alt="Brillo">
+  <img src="capturas/brilli.jpeg" width="30%" alt="Brightness">
 </div>
 
+## Download (easiest, no setup)
 
+Grab the ready-made app — no Python, no terminal:
 
+**→ [Download Remote.exe](https://github.com/sergiserer/Controller/releases/latest/download/Mando.exe)**
 
-## Funciones
+Double‑click it. A small window opens with the address and a **QR code**: scan it with your phone
+camera, open the link, and add it to your home screen. Keep the window open while you use the remote;
+close it to stop.
 
-- **Apagar** y **reiniciar** con 30 s de margen y cuenta atrás en pantalla.
-- **Cancelar** un apagado o reinicio pendiente.
-- **Volumen**: subir, bajar (mantener pulsado repite) y silenciar.
-- **Brillo del monitor** por DDC/CI, con barra deslizante que se abre en el valor real.
+- The first time, Windows may show a blue **"Windows protected your PC"** notice (the file isn't
+  code‑signed). Click **"More info" → "Run anyway"**.
+- Windows will ask about the **firewall**: choose **private networks** and allow it.
+- Tick **"Start with Windows"** in the window so it's always ready.
+- The app creates two desktop shortcuts the first time: **Remote - Start** and **Remote - Stop**.
 
-Solo usa la librería estándar de Python: no hay que instalar dependencias.
+## Features
 
-## Archivos
+- **Power off** and **restart** with a 7‑second grace period and an on‑screen countdown.
+- **Shutdown timer** (clock button, top left): pick hours and minutes, or a 15 min / 30 min / 1 h / 2 h
+  preset, and watch the remaining time live.
+- **Cancel** a pending shutdown, restart or timer.
+- **Volume**: up, down (hold to repeat) and mute.
+- **Monitor brightness** over DDC/CI (sun button, top right), with a slider that opens at the real value.
+- When the server is off, the home‑screen app shows a **"Remote is off"** screen and reconnects by itself
+  once you start it on the PC.
 
-| Archivo | Para qué sirve |
+The countdown is handled by the server, not by Windows, so Windows never shows its full‑screen
+"a shutdown has been scheduled" notice. When it reaches zero it runs `shutdown /s /f /t 0`, so **the
+server must stay running** until the PC powers off.
+
+The server uses only the Python standard library — no dependencies.
+
+## Files
+
+| File | What it's for |
 |---|---|
-| `apagar_pc.py` | El servidor y la página web. |
-| `mando_app.py` | App de escritorio: arranca el servidor y muestra la dirección (con QR) en una ventanita. |
-| `construir.ps1` | Genera `Mando.exe` a partir de los dos anteriores (para pasárselo a alguien sin conocimientos). |
-| `crear_accesos.ps1` | Crea los accesos directos de Iniciar y Detener en el escritorio. |
-| `token.txt` | Se genera solo la primera vez. Es la clave de acceso. **No se sube al repo.** |
+| `apagar_pc.py` | The server and the web page. |
+| `mando_app.py` | The desktop app: starts the server and shows the address (with a QR) in a small window. |
+| `construir.ps1` | Builds `Mando.exe` from the two files above (to hand to someone with no setup). |
+| `crear_accesos.ps1` | Creates the Start/Stop desktop shortcuts (for the plain‑Python setup). |
+| `mando.ico` / `mando_detener.ico` | Icons for the shortcuts (the remote, and the remote with a red X). |
+| `generar_icono.py` | Draws the remote icon pixel by pixel (needs Pillow). |
+| `generar_iconos_windows.py` | Rebuilds the two `.ico` files from that same drawing. |
+| `token.txt` | Created on first run. It's the access key. **Never committed** (it's in `.gitignore`). |
 
-## Requisitos
+## Requirements
 
-- Windows 10 u 11.
-- Python 3.8 o superior, con **"Add Python to PATH"** marcado al instalarlo.
-- Para el brillo: monitor con **DDC/CI** activado en su menú (si Twinkle Tray funciona, ya lo está).
-- El móvil y el PC en la misma red wifi.
+- Windows 10 or 11.
+- Python 3.8+ with **"Add Python to PATH"** ticked (only for the plain‑Python setup; the `.exe` needs nothing).
+- For brightness: a monitor with **DDC/CI** enabled in its menu (if Twinkle Tray works, it already is).
+- Phone and PC on the same Wi‑Fi.
 
-## Instalación en un PC nuevo
+## Run it from Python (instead of the .exe)
 
-### 1. Descargar el proyecto
+### 1. Get the project
 
 ```powershell
 cd $HOME
-git clone https://github.com/<tu-usuario>/mando.git
-cd mando
+git clone https://github.com/sergiserer/Controller.git
+cd Controller
 ```
 
-### 2. Probarlo y obtener la URL
+### 2. Test it and get the URL
 
 ```powershell
 python apagar_pc.py
 ```
 
-La primera vez crea `token.txt` y muestra una URL como:
+The first run creates `token.txt` and prints a URL like:
 
 ```
 http://192.168.1.50:8765/?t=XXXXXXXXXXXXXXXX
 ```
 
-Ábrela en el móvil para comprobar que funciona y cierra la consola con `Ctrl + C`.
+Open it on your phone to check it works, then close the console with `Ctrl + C`.
 
-> Si vienes de otro PC y quieres conservar la misma URL en el móvil, copia el `token.txt` antiguo a esta carpeta **antes** de ejecutar el script.
+> Coming from another PC and want to keep the same URL on your phone? Copy the old `token.txt` into
+> this folder **before** running the script.
 
-### 3. Permitir la conexión en el firewall
-Haz click en permitir o
+### 3. Allow it through the firewall
 
-Abre PowerShell **como administrador**:
+Click "Allow" on the prompt Windows shows, or run PowerShell **as administrator**:
 
 ```powershell
-New-NetFirewallRule -DisplayName "Mando PC" -Direction Inbound -Protocol TCP -LocalPort 8765 -Profile Private -Action Allow
+New-NetFirewallRule -DisplayName "Remote PC" -Direction Inbound -Protocol TCP -LocalPort 8765 -Profile Private -Action Allow
 ```
 
-Comprueba también que la wifi de casa esté marcada como red **Privada**
-(Configuración, Red e Internet, Wi-Fi, tu red, Tipo de perfil de red).
+Also check your home Wi‑Fi is set as a **Private** network
+(Settings → Network & Internet → Wi‑Fi → your network → Network profile type).
 
-### 4. Crear los accesos directos
+### 4. Create the shortcuts
 
-Desde PowerShell normal, en la carpeta del proyecto:
+From a normal PowerShell, in the project folder:
 
 ```powershell
-# Solo en el escritorio (Iniciar y Detener)
+# Desktop only (Start and Stop)
 powershell -ExecutionPolicy Bypass -File .\crear_accesos.ps1
 
-# En el escritorio y además arranque automático al iniciar sesión
+# Desktop plus auto‑start at sign‑in
 powershell -ExecutionPolicy Bypass -File .\crear_accesos.ps1 -Inicio
 ```
 
-Se crean en el escritorio:
-
-- **Apagar PC - Iniciar**: arranca el servidor en segundo plano (con `pythonw`, sin ventana).
-- **Apagar PC - Detener**: cierra el servidor.
-
-Para **quitar el arranque automático** si lo activaste:
+To **remove auto‑start** if you enabled it:
 
 ```powershell
-Remove-Item "$([Environment]::GetFolderPath('Startup'))\Apagar PC - Iniciar.lnk"
+Remove-Item "$([Environment]::GetFolderPath('Startup'))\Mando - Iniciar.lnk"
 ```
 
-o bien `Win + R`, escribe `shell:startup` y borra el acceso directo.
+or press `Win + R`, type `shell:startup`, and delete the shortcut.
 
-### 5. Fijar la IP del PC
-Puedes buscar tu hostname en terminal y en vez de usar la IP o fijar una estática puedes intercambiar IP por hostname.local
-En el router, reserva una IP fija para el PC (apartado DHCP, reserva de direcciones).
-Si no, la URL dejará de funcionar el día que cambie la IP.
+### 5. Pin the PC's IP
 
-En su defecto, mira usa hostname.local
-En terminal escribe hostname para encontrar el tuyo
+In your router, reserve a fixed IP for the PC (DHCP → address reservation); otherwise the URL breaks the
+day the IP changes. As an alternative to an IP, you can use the PC's name: run `hostname` in a terminal
+and use `http://YOUR-PC-NAME.local:8765/?t=...`.
 
-### 6. Añadirlo al movil
+### 6. Add it to the phone
 
-Abre la URL en Navegador, pulsa **Compartir** y luego **Añadir a pantalla de inicio**.
-Se abrirá a pantalla completa, como una app.
+Open the URL in the browser, tap **Share → Add to Home Screen**. It opens full screen, like an app,
+with the remote icon.
 
-## Actualizar
+## Build the .exe yourself
+
+Every push of a version tag builds `Mando.exe` automatically on GitHub (see `.github/workflows/build.yml`)
+and publishes it to **Releases**. To cut a version:
 
 ```powershell
-git pull
+git tag v2
+git push origin v2
 ```
 
-Después pulsa **Detener** e **Iniciar**. Los accesos directos no hay que volver a crearlos mientras no cambies
-la carpeta ni el nombre de `apagar_pc.py`.
-
-## App para Windows (Mando.exe) — para alguien sin conocimientos
-
-En vez de ejecutar nada en la terminal, puedes empaquetar todo en un único `Mando.exe`.
-Quien lo reciba solo hace **doble clic**: aparece una ventanita con la dirección y un **código QR**
-para escanear con la cámara del móvil (sin escribir nada), y al cerrar la ventana el mando se apaga.
-
-### Generar el .exe (lo haces tú una vez)
-
-En tu PC, con Python instalado, abre PowerShell en esta carpeta y ejecuta:
+Or build it locally in one step (installs PyInstaller and qrcode for you):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\construir.ps1
 ```
 
-Se instalan solas las dos herramientas necesarias (PyInstaller y qrcode) y, al terminar,
-tienes un `Mando.exe` en la carpeta. Ese es el único archivo que tienes que pasar.
+You'll get `Mando.exe` in the folder — the only file you need to share.
 
-### Lo que hace tu amigo
+> Some antivirus tools distrust PyInstaller `.exe` files (a common false positive). If that happens,
+> add an exception, or share the folder and let the person run `python mando_app.py`.
 
-1. Guarda `Mando.exe` donde quiera (Escritorio, Descargas...) y hace **doble clic**.
-2. La primera vez, Windows puede mostrar un aviso azul **"Windows protegió tu PC"** (porque el
-   archivo no está firmado). Pulsa **"Más información"** y luego **"Ejecutar de todas formas"**.
-3. Windows preguntará por el **firewall**: marcar **redes privadas** y aceptar.
-4. En la ventanita, **escanea el QR** con la cámara del iPhone (o copia la dirección) y abre el enlace.
-5. En Safari: **Compartir → Añadir a pantalla de inicio**.
-6. Si marca **"Arrancar con Windows"**, el mando estará siempre listo sin abrir nada.
+## Troubleshooting
 
-> El `Mando.exe` ya no necesita los accesos directos ni `crear_accesos.ps1`: la propia ventana
-> es el botón de iniciar (abrirla) y detener (cerrarla).
+**"Access denied" on the phone.** The URL token doesn't match `token.txt` (usually a new token was
+generated). Run `python apagar_pc.py` to see the right URL, or copy the old token into `token.txt`.
 
-> Algunos antivirus desconfían de los `.exe` hechos con PyInstaller (un falso positivo habitual).
-> Si pasa, añade una excepción, o comparte la carpeta y que ejecute `python mando_app.py`.
+**The page won't load.** Check the server is running, the phone is on the same Wi‑Fi, the firewall rule
+is in place, and the network is Private.
 
-## Problemas frecuentes
+**"The monitor does not respond over DDC/CI".** Enable DDC/CI in the monitor's own menu. Some adapters
+(certain USB‑C/DisplayPort‑to‑HDMI cables and docks) don't carry DDC/CI.
 
-**"Acceso denegado" en el móvil.** El token de la URL no coincide con `token.txt`. Suele pasar si se generó un
-`token.txt` nuevo. Ejecuta `python apagar_pc.py` para ver la URL correcta, o copia el token antiguo dentro de `token.txt`.
+**The timer didn't power off the PC.** The server stopped before reaching zero (for example, you pressed
+Stop). Keep it running.
 
-**La página no carga.** Comprueba que el servidor está en marcha (busca `pythonw.exe` en el Administrador de tareas,
-pestaña Detalles), que el móvil está en la misma wifi, la regla de firewall y que la red es Privada.
+**Port 8765 is busy.** Another instance is already running — stop it first (double‑click `Liberar puerto
+Mando.bat`, or close the old window), or change `PUERTO` at the top of `apagar_pc.py` and the firewall rule.
 
-**"El monitor no responde por DDC/CI".** Activa DDC/CI en el menú del propio monitor. Algunos adaptadores
-(ciertos USB-C/DisplayPort a HDMI y docks) no transmiten DDC/CI.
+## Security
 
-**El puerto 8765 está ocupado.** Cambia `PUERTO` al principio de `apagar_pc.py` y la regla de firewall.
-
-## Seguridad
-
-- Solo funciona dentro de la red local: el router no deja pasar conexiones desde internet salvo que abras el puerto.
-  **No abras el puerto en el router.** Para usarlo fuera de casa, usa una VPN como Tailscale.
-- El token impide que otros dispositivos de tu wifi lo usen.
-- El tráfico va por HTTP sin cifrar dentro de tu red. Para cifrarlo, se puede servir por HTTPS con un certificado
-  de `mkcert` o usar `tailscale serve`.
-- `token.txt` está en `.gitignore`: no lo subas nunca al repositorio.
+- It only works inside your local network: the router won't let in connections from the internet unless
+  you open the port. **Don't open the port on the router.** To use it away from home, use a VPN like Tailscale.
+- The token stops other devices on your Wi‑Fi from using it.
+- Traffic is plain HTTP inside your network. To encrypt it, serve over HTTPS with an `mkcert` certificate
+  or use `tailscale serve`.
+- `token.txt` is in `.gitignore` — never commit it.
